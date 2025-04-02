@@ -1,71 +1,41 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import cors from 'cors'; // Enable CORS
 
 const app = express();
-const PORT = 3000;
+const PORT = 3001;
 
-app.use(express.json()); // for parsing application/json
+app.use(express.json());
+app.use(cors()); // Allow frontend apps to fetch data from this API
 
 // Home route
 app.get('/', (req, res) => {
-  res.send('Our application is running. All good here.');
+  res.send('Switch Games API is running.');
 });
 
-// Get all posts
-app.get('/posts', async (req, res) => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-  const data = await response.json();
-  res.json(data);
+// Get all Switch games
+app.get('/games', async (req, res) => {
+  try {
+    const response = await fetch('https://api.sampleapis.com/switch/games');
+    if (!response.ok) throw new Error(`Error fetching games: ${response.status}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Get a single post
-app.get('/posts/:id', async (req, res) => {
+// Get a single game by ID
+app.get('/games/:id', async (req, res) => {
   const { id } = req.params;
-  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
-  const data = await response.json();
-  res.json(data);
-});
-
-// Create a new post
-app.post('/posts', async (req, res) => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
-    method: 'POST',
-    body: JSON.stringify(req.body),
-    headers: { 'Content-Type': 'application/json' },
-  });
-  const data = await response.json();
-  res.status(201).json(data);
-});
-
-// Update a post completely
-app.put('/posts/:id', async (req, res) => {
-  const { id } = req.params;
-  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(req.body),
-    headers: { 'Content-Type': 'application/json' },
-  });
-  const data = await response.json();
-  res.json(data);
-});
-
-// Partially update a post
-app.patch('/posts/:id', async (req, res) => {
-  const { id } = req.params;
-  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(req.body),
-    headers: { 'Content-Type': 'application/json' },
-  });
-  const data = await response.json();
-  res.json(data);
-});
-
-// Delete a post
-app.delete('/posts/:id', async (req, res) => {
-  const { id } = req.params;
-  await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, { method: 'DELETE' });
-  res.status(204).send(); // No Content
+  try {
+    const response = await fetch(`https://api.sampleapis.com/switch/games/${id}`);
+    if (!response.ok) throw new Error(`Game not found with ID: ${id}`);
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
 });
 
 app.listen(PORT, () => {
